@@ -1,10 +1,7 @@
--- after/plugin/lsp.lua
-local ok, lspconfig = pcall(require, 'lspconfig')
-if not ok then
-  return
-end
 
--- This is the critical part - get capabilities from cmp_nvim_lsp
+-- after/plugin/lsp.lua
+
+-- Get capabilities for completion
 local cmp_ok, cmp_lsp = pcall(require, 'cmp_nvim_lsp')
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 
@@ -26,26 +23,26 @@ vim.api.nvim_create_autocmd('LspAttach', {
     vim.keymap.set('n', '<leader>vrr', vim.lsp.buf.references, opts)
     vim.keymap.set('n', '<leader>vrn', vim.lsp.buf.rename, opts)
     vim.keymap.set('i', '<C-h>', vim.lsp.buf.signature_help, opts)
-    
-    -- Debug: Print when LSP attaches
-    print("LSP attached to buffer " .. ev.buf)
   end,
+})
+
+-- NEW API: Configure servers using vim.lsp.config
+-- This replaces lspconfig[server].setup()
+
+-- Set global capabilities for all servers
+vim.lsp.config('*', {
+  capabilities = capabilities,
 })
 
 -- Configure clangd for C/C++
-lspconfig.clangd.setup({
-  capabilities = capabilities,
+vim.lsp.config('clangd', {
   cmd = { "clangd", "--background-index" },
-  on_attach = function(client, bufnr)
-    print("Clangd attached to buffer " .. bufnr)
-  end,
 })
 
--- Configure pyright for Python  
-lspconfig.pyright.setup({
-  capabilities = capabilities,
-  on_attach = function(client, bufnr)
-    print("Pyright attached to buffer " .. bufnr)
-  end,
-})
+-- Configure pyright for Python (uses defaults, no custom config needed)
+vim.lsp.config('pyright', {})
+
+-- NEW API: Enable the servers
+-- This replaces the setup() calls
+vim.lsp.enable({'clangd', 'pyright'})
 
